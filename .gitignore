@@ -6,10 +6,10 @@ __pycache__/
 /data/input/QubitData_30-06-2025_17-29-34.csv
 /data/output/
 
-# Ou, se nenhum dado de entrada ou saída deve ser versionado, use:
-# /data/
+# Arquivos de testes
+/tests/
 
-# Ignora a pasta do ambiente virtual
+# Pasta do ambiente virtual
 /.venv
 
 # Arquivos com variáveis de ambiente
