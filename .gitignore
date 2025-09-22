@@ -1,0 +1,16 @@
+# Arquivos gerados pelo Python
+__pycache__/
+*.pyc
+
+# Arquivos de dados
+/data/input/QubitData_30-06-2025_17-29-34.csv
+/data/output/
+
+# Ou, se nenhum dado de entrada ou saída deve ser versionado, use:
+# /data/
+
+# Ignora a pasta do ambiente virtual
+/.venv
+
+# Arquivos com variáveis de ambiente
+.env
