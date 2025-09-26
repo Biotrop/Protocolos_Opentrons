@@ -4,7 +4,7 @@ __pycache__/
 
 # Arquivos de dados
 /data/input/QubitData_30-06-2025_17-29-34.csv
-/data/output/
+/data/output/saida.csv
 
 # Arquivos de testes
 /tests/
