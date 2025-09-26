@@ -205,3 +205,18 @@ def run(protocol: protocol_api.ProtocolContext):
             p300.drop_tip()
 
     protocol.comment("Protocolo de diluição finalizado!")
+
+    """
+    ----------------------------
+        Exportação de Dados
+    ----------------------------
+    """
+    output_path = '/media/kai/2ccdf8b4-96af-4822-a501-d740f1a69bee/Protocolos_Opentrons/data/output/saida.csv'
+    with open(output_path, 'w', newline='') as csvfile:
+        fieldnames = ['Amostra', 'Volume DNA (µL)', 'Poço Original DNA', 'Slot Original DNA',
+                      'Volume Diluente (µL)', 'Slot de Destino', 'Poço de Destino']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(output_data)
+
+    protocol.comment("Arquivo de saída 'saida.csv' criado com sucesso.")
