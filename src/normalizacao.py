@@ -70,3 +70,102 @@ def run(protocol: protocol_api.ProtocolContext):
     if not dilution_samples:
         protocol.comment("Nenhum dado válido encontrado no CSV.")
         return
+
+    """
+    ----------------------------
+        Mapeamento e Cálculo 
+    ----------------------------
+    """
+    protocol.comment("Iniciando o cálculo dos volumes de diluição.")
+
+    for i, sample in enumerate(dilution_samples):
+        sample_name = sample['Sample Name']
+        original_conc = sample['Original Sample Conc.']
+        
+        # Nome da amostra é SXX, sendo XX é o número
+        sample_number_str = sample_name.strip().replace('S', '')
+        if not sample_number_str.isdigit():
+            protocol.comment(f"Ignorando amostra '{sample_name}': Formato de nome inválido.")
+            continue
+        
+        sample_number = int(sample_number_str)
+        
+        if 1 <= sample_number <= 96 and original_conc > 0:
+            # Poço de origem
+            source_plate_index = (sample_number - 1) // 24
+            source_well_index = (sample_number - 1) % 24
+            
+            source_plate = list(source_plates.values())[source_plate_index]
+            source_well = source_plate.wells()[source_well_index]
+            source_plate_name = list(source_plates.keys())[source_plate_index]
+            
+            # Poço de Destino
+            rows_abcd = ['A', 'B', 'C', 'D']
+            rows_efgh = ['E', 'F', 'G', 'H']
+
+            # Mapeamento decidido
+            if 1 <= sample_number <= 24:
+                row = rows_efgh[(sample_number - 1) % 4]
+                col = ((sample_number - 1) // 4) + 1
+            elif 25 <= sample_number <= 48:
+                row = rows_efgh[(sample_number - 25) % 4]
+                col = ((sample_number - 25) // 4) + 7
+            elif 49 <= sample_number <= 72:
+                row = rows_abcd[(sample_number - 49) % 4]
+                col = ((sample_number - 49) // 4) + 1
+            elif 73 <= sample_number <= 96:
+                row = rows_abcd[(sample_number - 73) % 4]
+                col = ((sample_number - 73) // 4) + 7
+            
+            dest_well = final_plate.wells_by_name()[f"{row}{col}"]
+            
+            # Cálculo dos Volumes
+            if original_conc >= target_conc:
+                # Normalização: C1*V1 = C2*V2
+                dna_volume = ((target_conc * final_volume) / original_conc)
+                diluent_volume = (final_volume - dna_volume)
+            else:
+                # Concentração já abaixo: Transfere o volume final de DNA
+                dna_volume = final_volume
+                diluent_volume = 0
+
+            dna_volume = round(dna_volume, 2)
+            diluent_volume = round(diluent_volume, 2)
+            
+            # Garantir que os volumes sejam >= 1 µL para pipetagem eficiente
+            #if diluent_volume < 1 and diluent_volume > 0:
+            #    diluent_volume = 1.0
+            #    dna_volume = final_volume - 1.0
+            
+            #if dna_volume < 1 and dna_volume > 0:
+                # Se o volume de DNA é muito pequeno e precisa de diluente
+            #    if diluent_volume > 0:
+            #        protocol.comment(f"Amostra {sample_name}: Volume de DNA ({dna_volume:.2f} µL) muito pequeno para diluição. Ignorando a diluição, apenas transferindo DNA.")
+            #        diluent_volume = 0
+            #        dna_volume = final_volume
+            #    else:
+                    # Se não precisa de diluente, o volume total já é baixo ou não há diluição
+            #        pass
+
+            # Adiciona a listas de transferências de DNA e diluente
+            if diluent_volume > 0:
+                diluent_transfers.append({'volume': diluent_volume, 'destination': dest_well})
+            if dna_volume > 0:
+                dna_transfers.append({
+                    'volume': dna_volume, 
+                    'source': source_well,
+                    'source_plate': source_plate_name,
+                    'destination': dest_well
+                })
+
+            output_data.append({
+                'Amostra': sample_name,
+                'Volume DNA (µL)': dna_volume,
+                'Poço Original DNA': source_well.display_name,
+                'Slot Original DNA': source_plate_name,
+                'Volume Diluente (µL)': diluent_volume,
+                'Slot de Destino': 'final_plate',
+                'Poço de Destino': dest_well.display_name
+            })
+        else:
+            protocol.comment(f"Ignorando a amostra '{sample_name}': Número fora do intervalo (1-96) ou Conc. <= 0.")
