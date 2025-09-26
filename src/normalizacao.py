@@ -39,7 +39,7 @@ def run(protocol: protocol_api.ProtocolContext):
     dna_transfers = []
 
     # Importação de arquivo csv com inicio do nome QubitData...
-    csv_path = glob.glob('/media/kai/2ccdf8b4-96af-4822-a501-d740f1a69bee/Protocolos_Opentrons/data/input/QubitData*.csv')
+    csv_path = glob.glob('/var/lib/jupyter/notebooks/QubitData*.csv')
     
     if not csv_path:
         protocol.comment("Erro: Nenhum arquivo 'QubitData...' encontrado.")
@@ -211,7 +211,7 @@ def run(protocol: protocol_api.ProtocolContext):
         Exportação de Dados
     ----------------------------
     """
-    output_path = '/media/kai/2ccdf8b4-96af-4822-a501-d740f1a69bee/Protocolos_Opentrons/data/output/saida.csv'
+    output_path = '/var/lib/jupyter/notebooks/saida.csv'
     with open(output_path, 'w', newline='') as csvfile:
         fieldnames = ['Amostra', 'Volume DNA (µL)', 'Poço Original DNA', 'Slot Original DNA',
                       'Volume Diluente (µL)', 'Slot de Destino', 'Poço de Destino']
