@@ -169,3 +169,39 @@ def run(protocol: protocol_api.ProtocolContext):
             })
         else:
             protocol.comment(f"Ignorando a amostra '{sample_name}': Número fora do intervalo (1-96) ou Conc. <= 0.")
+         
+    """
+    ----------------------------
+        Comandos de Pipetagem
+    ----------------------------
+    """
+    
+    # 1. Transferência de Diluente
+    if diluent_transfers:
+        protocol.comment("Iniciando a transferência de diluente (Água).")
+        p300.pick_up_tip()
+        
+        for transfer in diluent_transfers:
+            volume = transfer['volume']
+            destination = transfer['destination']
+            protocol.comment(f"Transferindo {volume} µL de diluente para {destination.display_name}.")
+            p300.transfer(volume, source_water, destination, new_tip='never') 
+        p300.drop_tip()
+
+
+    # 2. Transferência de DNA 
+    if dna_transfers:
+        protocol.comment("Iniciando a transferência de DNA (Amostras).")
+        
+        for transfer in dna_transfers:
+            volume = transfer['volume']
+            source = transfer['source']
+            destination = transfer['destination']
+            
+            p300.pick_up_tip()
+            protocol.comment(f"Transferindo {volume} µL de DNA de {source.display_name} para {destination.display_name}.")
+
+            p300.transfer(volume, source, destination, new_tip='never')
+            p300.drop_tip()
+
+    protocol.comment("Protocolo de diluição finalizado!")
