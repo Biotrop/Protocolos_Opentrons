@@ -37,3 +37,36 @@ def run(protocol: protocol_api.ProtocolContext):
     dilution_samples = []
     diluent_transfers = []
     dna_transfers = []
+
+    # Importação de arquivo csv com inicio do nome QubitData...
+    csv_path = glob.glob('/media/kai/2ccdf8b4-96af-4822-a501-d740f1a69bee/Protocolos_Opentrons/data/input/QubitData*.csv')
+    
+    if not csv_path:
+        protocol.comment("Erro: Nenhum arquivo 'QubitData...' encontrado.")
+        return
+        
+    csv_file_path = csv_path[0]
+    protocol.comment(f"Arquivo CSV encontrado: {csv_file_path}")
+    
+    try:
+        with open(csv_file_path, 'r') as file:
+            csv_reader = csv.DictReader(file)
+            for row in csv_reader:
+                sample_name = row.get('Sample Name')
+                original_conc_str = row.get('Original Sample Conc.')
+                if sample_name and original_conc_str:
+                    try:
+                        original_conc = float(original_conc_str)
+                        dilution_samples.append({
+                            'Sample Name': sample_name,
+                            'Original Sample Conc.': original_conc
+                        })
+                    except (ValueError, TypeError):
+                        protocol.comment(f"Amostra '{sample_name}' com concentração inválida: '{original_conc_str}'.")
+    except FileNotFoundError:
+        protocol.comment(f"Erro: Arquivo '{csv_file_path}' não encontrado.")
+        return
+
+    if not dilution_samples:
+        protocol.comment("Nenhum dado válido encontrado no CSV.")
+        return
