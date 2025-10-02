@@ -1,6 +1,7 @@
 from opentrons import protocol_api
 import csv
 import glob
+import os
 
 metadata = {
     'protocolName': 'Diluição de Amostras de DNA',
@@ -44,7 +45,11 @@ def run(protocol: protocol_api.ProtocolContext):
     if not csv_path:
         protocol.comment("Erro: Nenhum arquivo 'QubitData...' encontrado.")
         return
+
+    # Classificação do arquivo csv mais recente
+    csv_path.sort(key=os.path.getmtime, reverse=True)
         
+    # Variável para o arquivo csv mais recente
     csv_file_path = csv_path[0]
     protocol.comment(f"Arquivo CSV encontrado: {csv_file_path}")
     
